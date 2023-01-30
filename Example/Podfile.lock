@@ -1,0 +1,31 @@
+PODS:
+  - AssociatedObjectAccessible (0.1.0)
+  - SnapKit (5.6.0)
+  - ViewSizeCalculation (0.2.0)
+  - ViewSizeExpansion (0.1.0):
+    - AssociatedObjectAccessible
+    - ViewSizeCalculation
+
+DEPENDENCIES:
+  - SnapKit
+  - ViewSizeExpansion (from `../`)
+
+SPEC REPOS:
+  trunk:
+    - AssociatedObjectAccessible
+    - SnapKit
+    - ViewSizeCalculation
+
+EXTERNAL SOURCES:
+  ViewSizeExpansion:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  AssociatedObjectAccessible: 622bfbf765ea882feea135087c2338e0ec59f069
+  SnapKit: e01d52ebb8ddbc333eefe2132acf85c8227d9c25
+  ViewSizeCalculation: 17acdf9b4f072bdd8a83722cdcc15bb9bfe48ae4
+  ViewSizeExpansion: 6541c25958899262741ca8d6fcc88a09ee984003
+
+PODFILE CHECKSUM: 198f22c671efd65746baa9cdb94d011fa3ae62c6
+
+COCOAPODS: 1.11.3
