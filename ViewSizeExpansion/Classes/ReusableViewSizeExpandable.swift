@@ -13,14 +13,15 @@ extension ReusableViewSizeExpandable {
     
     private func _setupReusableViewExpandableExpansion(state: ExpansionState, sizeConstraint: UIView.LayoutSizeConstraint, changed: @escaping (ExpansionState) -> ()) {
         setupInternal(expansionState: state) { state in
-            changed(state)
-            layoutContainerViewSubviews(expansionState: state)
             if state != .invalid {
-                if checkLayoutIsInvalid(layoutType: .autoLayout(sizeConstraint: sizeConstraint, style: .compressed)) {
-                    layoutContainerViewSubviews(expansionState: .invalid)
+                if checkLayoutIsInvalid(layoutType: .autoLayout(sizeConstraint: sizeConstraint, style: .compressed)).isInvalid {
+                    // Re-invoke current closure.
                     expansionActivator.expansionState = .invalid
+                    return
                 }
             }
+            changed(state)
+            layoutContainerViewSubviews(expansionState: state)
         }
     }
     

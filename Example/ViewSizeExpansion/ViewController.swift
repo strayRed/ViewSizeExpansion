@@ -54,6 +54,7 @@ class ExpandableLabelView: UIView, NormalViewSizeExpandable {
     func layoutContainerViewSubviews(expansionState: ExpansionState) {
         label.snp.removeConstraints()
         imageIndicator.snp.removeConstraints()
+        addSubview(imageIndicator)
         switch expansionState {
         case .expanded:
             label.snp.makeConstraints { make in

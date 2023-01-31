@@ -15,10 +15,6 @@ public protocol ExpansionActivator: AnyObject, AssociatedObjectAccessible {
     
 }
 
-extension ExpansionActivator {
-    func expansionStateDidChanged(isExpanded: Bool) { }
-}
-
 var expansionStateKey: Void?
 var changeExpansionStateInternalKey: Void?
 extension ExpansionActivator {

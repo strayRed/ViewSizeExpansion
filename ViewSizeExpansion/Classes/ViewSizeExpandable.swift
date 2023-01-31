@@ -16,11 +16,11 @@ public enum ExpansionState: String, Hashable {
     
     mutating public func toggle() {
         if self == .expanded { self = .collapsed }
-        else if self == .collapsed {  self  = .expanded}
+        else if self == .collapsed {  self  = .expanded }
     }
 }
 
-public protocol ViewSizeExpandable: AssociatedObjectAccessible {
+public protocol ViewSizeExpandable {
     
     var expandableContainerView: UIView { get }
     
@@ -55,15 +55,16 @@ extension ViewSizeExpandable {
     
     func checkSizeIsInvalid(_ size: CGSize) -> Bool {
         let defaultSize = CGSize(width: containerViewDefaultWidth ?? size.width, height: containerViewDefaultHeight ?? size.height)
-        let widthFlag = size.width < defaultSize.width && defaultSize.width != 0
-        let heightFlag = size.height < defaultSize.height && defaultSize.height != 0
-        return widthFlag || heightFlag
+        let widthFlag = (size.width <= defaultSize.width || (0...1.0).contains(abs(size.width - defaultSize.width))) && defaultSize.width != 0
+        let heightFlag = (size.height <= defaultSize.height || (0...1.0).contains(abs(size.height - defaultSize.height))) && defaultSize.height != 0
+        return widthFlag && heightFlag
     }
     
-    func checkLayoutIsInvalid(layoutType: UIView.LayoutSizeCaculatingType) -> Bool {
-        if containerViewDefaultWidth == nil && containerViewDefaultHeight == nil { return false }
+    func checkLayoutIsInvalid(layoutType: UIView.LayoutSizeCaculatingType) -> (isInvalid: Bool, invalidLayoutSize: CGSize) {
+        if containerViewDefaultWidth == nil && containerViewDefaultHeight == nil { return (false, .zero) }
+        self.layoutContainerViewSubviews(expansionState: .invalid)
         let caculatedSize = expandableContainerView.caculateLayoutSize(type: layoutType)
-        return checkSizeIsInvalid(caculatedSize)
+        return (checkSizeIsInvalid(caculatedSize), caculatedSize)
     }
 }
 

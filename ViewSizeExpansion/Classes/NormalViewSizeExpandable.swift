@@ -45,7 +45,7 @@ fileprivate struct NormalViewSizeExpansionContext {
 
 private var viewSizeExpansionContextKey: Void?
 
-public protocol NormalViewSizeExpandable: UIView, ViewSizeExpandable {
+public protocol NormalViewSizeExpandable: AnyObject, ViewSizeExpandable, AssociatedObjectAccessible {
     
     var expandableContainerViewLayoutType: UIView.LayoutSizeCaculatingType { get }
     
@@ -60,26 +60,35 @@ extension NormalViewSizeExpandable {
         get { getAssociatedObject(forKey: &viewSizeExpansionContextKey, default: NormalViewSizeExpansionContext()) }
     }
     
-    private func caculateExpandableSizeIfNeed() {
-        if context.currentContainerViewSize.height == 0 || context.currentContainerViewSize.width == 0 {
-            self.layoutContainerViewSubviews(expansionState: context.expansionState)
+    private func caculateExpandableSizeIfNeed() -> Bool {
+        guard context.currentContainerViewSize.height == 0 || context.currentContainerViewSize.width == 0 else { return true }
+        let checkInvalidResult = checkLayoutIsInvalid(layoutType: expandableContainerViewLayoutType)
+        if checkInvalidResult.isInvalid {
+            // Update context state.
+            context.expansionState = .invalid
+            // Update activator state.
+            expansionActivator.expansionStateDidChanged(expansionState: .invalid)
+            // Cache the size.
+            context.currentContainerViewSize = checkInvalidResult.invalidLayoutSize
+        }
+        else {
+            // Re-layout.
+            layoutContainerViewSubviews(expansionState: context.expansionState)
+            // Caculate the size.
             let size = expandableContainerView.caculateLayoutSize(type: expandableContainerViewLayoutType)
-            if checkSizeIsInvalid(size) {
-                context.expansionState = .invalid
-                self.layoutContainerViewSubviews(expansionState: .invalid)
-            }
             context.currentContainerViewSize = size
         }
         
         #if DEBUG
-        
         if context.currentContainerViewSize.height == 0 || context.currentContainerViewSize.width == 0  {
             print("⚠️ The height or width of \(self) will be assigned to 0. Please check your auto layout constraints in it.")
         }
-        
         #endif
+        return false
         
     }
+    
+    public func expandableContainerViewSizeNeedUpdating(size: CGSize, isInitial: Bool) { }
     
     /// Call this method to layout subviews and build up a connection between expansion indicator/activator and `containerView`.
     
@@ -88,19 +97,17 @@ extension NormalViewSizeExpandable {
         context = NormalViewSizeExpansionContext()
         setupInternal(expansionState: expansionState) { [weak self] expansionState in
             guard let self = self else { return }
-            /// the expansion state has been changed.
+            // Update context state.
             self.context.expansionState = expansionState
-            self.caculateExpandableSizeIfNeed()
-             
-            func updateContainerViewSize() {
-                self.expandableContainerViewSizeNeedUpdating(size: self.context.currentContainerViewSize, isInitial: !self.context.isViewLayouted)
-            }
-            if self.context.isViewLayouted && !self.context.isExpansionInvalid {
+            let shouldRelayout = self.caculateExpandableSizeIfNeed()
+            
+            if shouldRelayout {
                 self.layoutContainerViewSubviews(expansionState: expansionState)
-                updateContainerViewSize()
             }
-            else {
-                updateContainerViewSize()
+            // Additional update.
+            self.expandableContainerViewSizeNeedUpdating(size: self.context.currentContainerViewSize, isInitial: !self.context.isViewLayouted)
+            
+            if !self.context.isViewLayouted {
                 self.context.isViewLayouted = true
             }
         }
